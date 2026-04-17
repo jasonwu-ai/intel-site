@@ -14,6 +14,13 @@ nextDate.setDate(nextDate.getDate() + 1);
 const prevDateStr = prevDate.toISOString().split('T')[0];
 const nextDateStr = nextDate.toISOString().split('T')[0];
 const isToday = date === today;
+
+// Sanitize markdown content: strip script tags and convert newlines to <br/>
+function sanitizeAndRender(content: string): string {
+  return content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\n/g, '<br/>');
+}
 ---
 
 <BaseLayout title="Daily Brief" description="Curated intelligence summaries with key events, narratives, and market-moving developments.">
@@ -44,7 +51,7 @@ const isToday = date === today;
         <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
           <h2 class="text-xl font-semibold text-gray-100 mb-3">Top Developments</h2>
           <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-            <Fragment set:html={brief.topDevelopments.replace(/\n/g, '<br/>')} />
+            <Fragment set:html={sanitizeAndRender(brief.topDevelopments)} />
           </div>
         </section>
 
@@ -52,7 +59,7 @@ const isToday = date === today;
         <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
           <h2 class="text-xl font-semibold text-gray-100 mb-3">Market Signals</h2>
           <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-            <Fragment set:html={brief.marketSignals.replace(/\n/g, '<br/>')} />
+            <Fragment set:html={sanitizeAndRender(brief.marketSignals)} />
           </div>
         </section>
 
@@ -60,7 +67,7 @@ const isToday = date === today;
         <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
           <h2 class="text-xl font-semibold text-gray-100 mb-3">Narrative Map</h2>
           <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-            <Fragment set:html={brief.narrativeMap.replace(/\n/g, '<br/>')} />
+            <Fragment set:html={sanitizeAndRender(brief.narrativeMap)} />
           </div>
         </section>
 
@@ -68,7 +75,7 @@ const isToday = date === today;
         <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
           <h2 class="text-xl font-semibold text-gray-100 mb-3">Divergence Alerts</h2>
           <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-            <Fragment set:html={brief.divergenceAlerts.replace(/\n/g, '<br/>')} />
+            <Fragment set:html={sanitizeAndRender(brief.divergenceAlerts)} />
           </div>
         </section>
 
@@ -76,7 +83,7 @@ const isToday = date === today;
         <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
           <h2 class="text-xl font-semibold text-gray-100 mb-3">Scenario Spotlight</h2>
           <div class="prose prose-invert prose-sm max-w-none text-gray-300">
-            <Fragment set:html={brief.scenarioSpotlight.replace(/\n/g, '<br/>')} />
+            <Fragment set:html={sanitizeAndRender(brief.scenarioSpotlight)} />
           </div>
         </section>
 

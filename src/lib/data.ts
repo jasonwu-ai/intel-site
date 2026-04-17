@@ -30,13 +30,10 @@ export interface MarketMover {
 export interface MarketMovers {
   generatedAt: string;
   date: string;
-  snapshotCount: number;
-  kalshiMarkets: number;
   topGeoMarkets: MarketMover[];
   shifts: {
     total: number;
     geoRelevant: MarketShift[];
-    all1pctPlus: MarketShift[];
   };
 }
 
@@ -118,14 +115,23 @@ function parseBriefFile(content: string, date: string): DailyBrief {
     marketsReferenced,
     confidenceFlag,
     title,
-    topDevelopments: sections['Top Developments'] || sections['Top Developments\n'] || sections['Top Developments\r'] || '',
-    narrativeMap: sections['Narrative Map'] || sections['Narrative Map\n'] || sections['Narrative Map\r'] || '',
-    divergenceAlerts: sections['Divergence Alerts'] || sections['Divergence Alerts\n'] || sections['Divergence Alerts\r'] || '',
-    marketSignals: sections['Market Shifts'] || sections['Market Shifts (Apr 17 05:15 UTC)'] || sections['Market Shifts\r'] || '',
-    scenarioSpotlight: sections['Scenario Spotlight'] || sections['Scenario Spotlight\r'] || '',
-    methodology: sections['Methodology'] || sections['Methodology\r'] || '',
+    topDevelopments: findSection(sections, 'Top Developments'),
+    narrativeMap: findSection(sections, 'Narrative Map'),
+    divergenceAlerts: findSection(sections, 'Divergence Alerts'),
+    marketSignals: findSection(sections, 'Market Shifts'),
+    scenarioSpotlight: findSection(sections, 'Scenario Spotlight'),
+    methodology: findSection(sections, 'Methodology'),
     rawContent: body,
   };
+}
+
+function findSection(sections: Record<string, string>, ...prefixes: string[]): string {
+  for (const prefix of prefixes) {
+    if (sections[prefix]) return sections[prefix];
+    const key = Object.keys(sections).find(k => k.startsWith(prefix));
+    if (key) return sections[key];
+  }
+  return '';
 }
 
 function extractSections(body: string): Record<string, string> {
@@ -153,13 +159,10 @@ export async function loadMarketMovers(): Promise<MarketMovers | null> {
     return {
       generatedAt: data.generated_at || data.date || '',
       date: data.date || '',
-      snapshotCount: data.snapshot_count || 0,
-      kalshiMarkets: data.kalshi_markets || 0,
       topGeoMarkets: data.top_geo_markets || [],
       shifts: {
         total: data.shifts?.total || 0,
         geoRelevant: data.shifts?.geo_relevant || [],
-        all1pctPlus: data.shifts?.all_1pct_plus || [],
       },
     };
   } catch {
