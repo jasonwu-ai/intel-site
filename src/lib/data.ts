@@ -138,7 +138,7 @@ function extractSections(body: string): Record<string, string> {
   const sections: Record<string, string> = {};
 
   // Match ## Section headers
-  const headerRegex = /^##\s+(.+?)[\r\n]+([\s\S]*?)(?=^##\s+|\$)/gm;
+  const headerRegex = /^##\s+(.+?)[\r\n]+([\s\S]*?)(?=^##\s+)/gm;
   let match;
   while ((match = headerRegex.exec(body)) !== null) {
     const sectionName = match[1].trim().replace(/\r$/, '');
