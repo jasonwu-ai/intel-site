@@ -1,17 +1,112 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadDailyBrief } from '../lib/data';
+
+const today = new Date().toISOString().split('T')[0];
+const date = Astro.url.searchParams.get('date') || today;
+const brief = await loadDailyBrief(date);
+
+// Calculate prev/next dates
+const prevDate = new Date(date);
+prevDate.setDate(prevDate.getDate() - 1);
+const nextDate = new Date(date);
+nextDate.setDate(nextDate.getDate() + 1);
+const prevDateStr = prevDate.toISOString().split('T')[0];
+const nextDateStr = nextDate.toISOString().split('T')[0];
+const isToday = date === today;
+
+// Sanitize markdown content: strip script tags and convert newlines to <br/>
+function sanitizeAndRender(content: string): string {
+  return content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\n/g, '<br/>');
+}
 ---
+
 <BaseLayout title="Daily Brief" description="Curated intelligence summaries with key events, narratives, and market-moving developments.">
+  <!-- Date navigation header -->
+  <div class="border-b border-white/5 bg-bg-surface">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <a href={`?date=${prevDateStr}`} class="text-gray-400 hover:text-gray-200">← Prev</a>
+      <span class="text-gray-300 font-medium">{date}</span>
+      {isToday ? (
+        <span class="text-gray-500">Next →</span>
+      ) : (
+        <a href={`?date=${nextDateStr}`} class="text-gray-400 hover:text-gray-200">Next →</a>
+      )}
+    </div>
+  </div>
+
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
     <div class="mb-8">
       <span class="text-sm font-medium text-brand mb-2 block">Daily Brief</span>
-      <h1 class="text-4xl font-bold text-gray-100 mb-4">Intelligence Briefing</h1>
-      <p class="text-gray-400">Placeholder — Daily Brief content coming soon.</p>
+      <h1 class="text-4xl font-bold text-gray-100 mb-2">{brief?.title || 'Intelligence Briefing'}</h1>
+      {brief && <p class="text-gray-500 text-sm">Generated: {brief.generated}</p>}
     </div>
-    <div class="prose prose-invert prose-lg max-w-none">
-      <div class="p-6 bg-bg-surface border border-white/5 rounded-xl text-gray-400">
-        <p>This page is under construction. The Daily Brief will contain curated summaries of key geopolitical events, market-moving developments, and narrative analysis.</p>
+
+    {brief ? (
+      <div class="space-y-6">
+        <!-- Top Developments -->
+        <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+          <h2 class="text-xl font-semibold text-gray-100 mb-3">Top Developments</h2>
+          <div class="prose prose-invert prose-sm max-w-none text-gray-300">
+            <Fragment set:html={sanitizeAndRender(brief.topDevelopments)} />
+          </div>
+        </section>
+
+        <!-- Market Signals -->
+        <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+          <h2 class="text-xl font-semibold text-gray-100 mb-3">Market Signals</h2>
+          <div class="prose prose-invert prose-sm max-w-none text-gray-300">
+            <Fragment set:html={sanitizeAndRender(brief.marketSignals)} />
+          </div>
+        </section>
+
+        <!-- Narrative Map -->
+        <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+          <h2 class="text-xl font-semibold text-gray-100 mb-3">Narrative Map</h2>
+          <div class="prose prose-invert prose-sm max-w-none text-gray-300">
+            <Fragment set:html={sanitizeAndRender(brief.narrativeMap)} />
+          </div>
+        </section>
+
+        <!-- Divergence Alerts -->
+        <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+          <h2 class="text-xl font-semibold text-gray-100 mb-3">Divergence Alerts</h2>
+          <div class="prose prose-invert prose-sm max-w-none text-gray-300">
+            <Fragment set:html={sanitizeAndRender(brief.divergenceAlerts)} />
+          </div>
+        </section>
+
+        <!-- Scenario Spotlight -->
+        <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+          <h2 class="text-xl font-semibold text-gray-100 mb-3">Scenario Spotlight</h2>
+          <div class="prose prose-invert prose-sm max-w-none text-gray-300">
+            <Fragment set:html={sanitizeAndRender(brief.scenarioSpotlight)} />
+          </div>
+        </section>
+
+        <!-- View in Wiki links -->
+        {brief.eventsAnalysed.length > 0 && (
+          <section class="p-6 bg-bg-surface border border-white/5 rounded-xl">
+            <h2 class="text-xl font-semibold text-gray-100 mb-3">Events Covered</h2>
+            <ul class="space-y-2">
+              {brief.eventsAnalysed.map((slug: string) => (
+                <li>
+                  <a href={`https://sigint.zi.tools/events/${slug}`} target="_blank" rel="noopener" class="text-brand hover:text-brand/80">
+                    {slug} →
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
-    </div>
+    ) : (
+      <div class="p-6 bg-bg-surface border border-white/5 rounded-xl text-gray-400">
+        <p>No brief available for {date}.</p>
+      </div>
+    )}
   </div>
 </BaseLayout>
